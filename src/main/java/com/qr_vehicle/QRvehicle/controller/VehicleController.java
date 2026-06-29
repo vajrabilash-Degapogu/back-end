@@ -54,7 +54,6 @@ public class VehicleController {
     @GetMapping("/tag-pdf/{code}")
     public ResponseEntity<byte[]> getTagPdf(@PathVariable String code) throws Exception {
 
-    // String url = "http://localhost:3000/v/" + code;
     String url = "https://owntag.in/v/" + code;
     byte[] qr = QRGenerator.generateQR(url);
 
@@ -142,9 +141,7 @@ public class VehicleController {
     @GetMapping("/qr/{code}")
     public ResponseEntity<byte[]> getQR(@PathVariable String code) throws Exception {
 
-        // String url = "https://qrvehicle-frontend.vercel.app/v/" + code;
-        // String url = "https://owntag.in/v/" + code;
-        String url = "http://localhost:3000/v/" + code;
+        String url = "https://owntag.in/v/" + code;
         byte[] qr = QRGenerator.generateQR(url);
 
         return ResponseEntity.ok()
