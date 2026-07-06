@@ -33,8 +33,8 @@ import com.qr_vehicle.QRvehicle.util.TagPdfGenerator;
 @CrossOrigin(
 origins = {
     "https://owntag.in",
-    "https://www.owntag.in"
-    // "http://localhost:3000"
+    "https://www.owntag.in",
+    "http://localhost:3000"
 },
 allowCredentials = "true"
 )
@@ -57,8 +57,8 @@ public class VehicleController {
     @GetMapping("/tag-pdf/{code}")
     public ResponseEntity<byte[]> getTagPdf(@PathVariable String code) throws Exception {
 
-    String url = "https://owntag.in/v/" + code;
-    // String url = "http://localhost:3000/v/" + code;
+    // String url = "https://owntag.in/v/" + code;
+    String url = "http://localhost:3000/v/" + code;
     byte[] qr = QRGenerator.generateQR(url);
 
     byte[] pdf = TagPdfGenerator.generateTag(qr);
@@ -128,10 +128,18 @@ public class VehicleController {
     Order order = orderService.getById(orderId);
 
     VehicleOwner v = new VehicleOwner();
-    v.setOwnerName(order.getName());
-    v.setPhoneNumber(order.getPhone());
-    v.setVehicleNumber(order.getVehicleNumber());
-    v.setAddress(order.getAddress()); // ✅ already fixed
+
+        v.setOwnerName(order.getName());
+
+        v.setPhoneNumber(order.getPhone());
+
+        v.setEmergencyName(order.getEmergencyName());
+
+        v.setEmergencyPhone(order.getEmergencyPhone());
+
+        v.setVehicleNumber(order.getVehicleNumber());
+
+        v.setAddress(order.getAddress());
 
     VehicleOwner saved = vehicleService.save(v);
 
@@ -145,13 +153,25 @@ public class VehicleController {
     @GetMapping("/qr/{code}")
     public ResponseEntity<byte[]> getQR(@PathVariable String code) throws Exception {
 
-        String url = "https://owntag.in/v/" + code;
-        // String url = "http://localhost:3000/v/" + code;
+        // String url = "https://owntag.in/v/" + code;
+        String url = "http://localhost:3000/v/" + code;
         byte[] qr = QRGenerator.generateQR(url);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=qr.png")
                 .body(qr);
+    }
+
+    @GetMapping("/call-emergency/{code}")
+    public ResponseEntity<Void> emergency(@PathVariable String code) {
+
+        VehicleOwner v = vehicleService.getByCode(code);
+
+        URI uri = URI.create("tel:" + v.getEmergencyPhone());
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(uri)
+                .build();
     }
 
     @PutMapping("/vehicle/{id}")
@@ -160,9 +180,16 @@ public class VehicleController {
     VehicleOwner v = vehicleService.getById(id);
 
     v.setOwnerName(updated.getOwnerName());
+
     v.setPhoneNumber(updated.getPhoneNumber());
+
+    v.setEmergencyName(updated.getEmergencyName());
+
+    v.setEmergencyPhone(updated.getEmergencyPhone());
+
     v.setVehicleNumber(updated.getVehicleNumber());
-     v.setAddress(updated.getAddress());
+
+    v.setAddress(updated.getAddress());
 
     return vehicleService.save(v);
     }

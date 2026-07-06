@@ -112,6 +112,8 @@ public class OrderService {
         order.setName(updated.getName().trim());
         order.setPhone(updated.getPhone().trim());
         order.setAddress(updated.getAddress().trim());
+        order.setEmergencyName(updated.getEmergencyName().trim());
+        order.setEmergencyPhone(updated.getEmergencyPhone().trim());
         order.setVehicleNumber(vehicleNumber);
 
         return repo.save(order);

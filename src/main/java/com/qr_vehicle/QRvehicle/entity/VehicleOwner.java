@@ -22,6 +22,12 @@ public class VehicleOwner {
     private String phoneNumber;
 
     @NotBlank
+    private String emergencyName;
+
+    @NotBlank
+    private String emergencyPhone;
+
+    @NotBlank
     private String vehicleNumber;
 
     @NotBlank

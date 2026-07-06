@@ -13,8 +13,8 @@ import com.qr_vehicle.QRvehicle.service.OrderService;
 @CrossOrigin(
     origins = {
         "https://owntag.in",
-        "https://www.owntag.in"
-        // "http://localhost:3000"
+        "https://www.owntag.in",
+        "http://localhost:3000"
     },
     allowCredentials = "true"
 )
