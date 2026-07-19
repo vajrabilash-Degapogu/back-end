@@ -15,8 +15,8 @@ public class TagPdfGenerator {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         // ✅ REAL STICKER SIZE (NO BLUR PRINT)
-        float width = 90 * 2.83465f;   // 90mm
-        float height = 45 * 2.83465f;  // 45mm
+        float width = 100 * 2.83465f;   // 90mm
+        float height = 60 * 2.83465f;  // 45mm
 
         PdfWriter writer = new PdfWriter(baos);
         PdfDocument pdf = new PdfDocument(writer);

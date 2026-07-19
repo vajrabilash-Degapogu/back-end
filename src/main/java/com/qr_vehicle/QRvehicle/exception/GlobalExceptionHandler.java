@@ -43,7 +43,9 @@ public class GlobalExceptionHandler {
     public Map<String, String> handleException(Exception ex) {
 
         Map<String, String> error = new HashMap<>();
-        error.put("message", "Something went wrong. Please try again.");
+        ex.printStackTrace();
+
+error.put("message", ex.getMessage());
 
         return error;
     }

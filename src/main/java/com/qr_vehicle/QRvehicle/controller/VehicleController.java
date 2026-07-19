@@ -32,9 +32,10 @@ import com.qr_vehicle.QRvehicle.util.TagPdfGenerator;
 @RequestMapping("/api")
 @CrossOrigin(
 origins = {
+    // "http://localhost:3000",
+    // "http://localhost:5173",
     "https://owntag.in",
-    "https://www.owntag.in",
-    // "http://localhost:3000"
+    "https://www.owntag.in"
 },
 allowCredentials = "true"
 )

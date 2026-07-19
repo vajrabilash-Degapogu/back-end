@@ -30,6 +30,8 @@ public interface VehicleRepository extends JpaRepository<VehicleOwner, Long> {
     // Check duplicate phone number (optional but recommended)
     Optional<VehicleOwner> findByPhoneNumber(String phoneNumber);
 
+    
+
     // Exists checks (faster than fetching the whole entity)
     boolean existsByVehicleNumber(String vehicleNumber);
 

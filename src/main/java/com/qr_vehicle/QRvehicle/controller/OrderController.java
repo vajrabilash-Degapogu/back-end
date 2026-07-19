@@ -13,8 +13,8 @@ import com.qr_vehicle.QRvehicle.service.OrderService;
 @CrossOrigin(
     origins = {
         "https://owntag.in",
-        "https://www.owntag.in",
-        "http://localhost:3000"
+        "https://www.owntag.in"
+        // "http://localhost:3000"
     },
     allowCredentials = "true"
 )
@@ -33,6 +33,8 @@ public class OrderController {
     public Order placeOrder(@jakarta.validation.Valid @RequestBody Order order) {
     return service.save(order);
     }
+
+   
 
     // =========================
     // GET ALL ORDERS
@@ -105,4 +107,6 @@ public class OrderController {
     public long getOrderCount() {
         return service.count();
     }
+
+    
 }

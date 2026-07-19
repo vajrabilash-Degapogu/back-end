@@ -45,4 +45,10 @@ public class Order {
         message = "Enter a valid vehicle number (e.g. AP39AB1234)"
     )
     private String vehicleNumber;
+
+    private String tagId;
+
+    private Boolean tagAssigned = false;
+
+    private Long vehicleOwnerId;
 }

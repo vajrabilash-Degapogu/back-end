@@ -1,5 +1,5 @@
 package com.qr_vehicle.QRvehicle.entity;
-
+import jakarta.validation.constraints.NotBlank;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,10 +21,19 @@ public class VehicleOwner {
     @NotBlank
     private String phoneNumber;
 
-    @NotBlank
+    @Column(nullable = false)
+    private String tagId;
+
+    @Column(nullable = false)
+    private String sheetCode;
+
+    @Column(nullable = false)
+    private Integer sheetNumber;
+
+    
     private String emergencyName;
 
-    @NotBlank
+    
     private String emergencyPhone;
 
     @NotBlank
@@ -35,4 +44,28 @@ public class VehicleOwner {
 
     @Column(unique = true)
     private String uniqueCode;
+
+    public String getTagId() {
+    return tagId;
+}
+
+public void setTagId(String tagId) {
+    this.tagId = tagId;
+}
+
+public String getSheetCode() {
+    return sheetCode;
+}
+
+public void setSheetCode(String sheetCode) {
+    this.sheetCode = sheetCode;
+}
+
+public Integer getSheetNumber() {
+    return sheetNumber;
+}
+
+public void setSheetNumber(Integer sheetNumber) {
+    this.sheetNumber = sheetNumber;
+}
 }
