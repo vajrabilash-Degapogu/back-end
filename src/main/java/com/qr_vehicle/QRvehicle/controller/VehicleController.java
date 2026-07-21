@@ -95,11 +95,26 @@ public class VehicleController {
 
     // CALL
     @GetMapping("/call/{code}")
-    public ResponseEntity<Void> call(@PathVariable String code) {
-        VehicleOwner v = vehicleService.getByCode(code);
-        URI uri = URI.create("tel:" + v.getPhoneNumber());
-        return ResponseEntity.status(HttpStatus.FOUND).location(uri).build();
+public ResponseEntity<Void> call(@PathVariable String code) {
+
+    VehicleOwner v = vehicleService.getByCode(code);
+
+    String phone = v.getPhoneNumber();
+
+    // Remove spaces, +, -, etc.
+    phone = phone.replaceAll("\\D", "");
+
+    // Add India country code if missing
+    if (!phone.startsWith("91")) {
+        phone = "91" + phone;
     }
+
+    URI uri = URI.create("tel:+" + phone);
+
+    return ResponseEntity.status(HttpStatus.FOUND)
+            .location(uri)
+            .build();
+}
 
     @DeleteMapping("/vehicle/{id}")
     public void deleteVehicle(@PathVariable Long id) {
@@ -109,9 +124,24 @@ public class VehicleController {
     // WHATSAPP
     @GetMapping("/whatsapp/{code}")
     public ResponseEntity<Void> whatsapp(@PathVariable String code) {
-        VehicleOwner v = vehicleService.getByCode(code);
-        URI uri = URI.create("https://wa.me/" + v.getPhoneNumber());
-        return ResponseEntity.status(HttpStatus.FOUND).location(uri).build();
+
+    VehicleOwner v = vehicleService.getByCode(code);
+
+    String phone = v.getPhoneNumber();
+
+    // Remove spaces, +, -, etc.
+    phone = phone.replaceAll("\\D", "");
+
+    // Add India country code if missing
+    if (!phone.startsWith("91")) {
+        phone = "+91" + phone;
+    }
+
+    URI uri = URI.create("https://wa.me/" + phone);
+
+    return ResponseEntity.status(HttpStatus.FOUND)
+            .location(uri)
+            .build();
     }
 
     @GetMapping("/vehicle/paginated")
@@ -163,17 +193,25 @@ public class VehicleController {
                 .body(qr);
     }
 
-    @GetMapping("/call-emergency/{code}")
-    public ResponseEntity<Void> emergency(@PathVariable String code) {
+   @GetMapping("/call-emergency/{code}")
+public ResponseEntity<Void> callEmergency(@PathVariable String code) {
 
-        VehicleOwner v = vehicleService.getByCode(code);
+    VehicleOwner v = vehicleService.getByCode(code);
 
-        URI uri = URI.create("tel:" + v.getEmergencyPhone());
+    String phone = v.getEmergencyPhone();
 
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(uri)
-                .build();
+    phone = phone.replaceAll("\\D", "");
+
+    if (!phone.startsWith("91")) {
+        phone = "91" + phone;
     }
+
+    URI uri = URI.create("tel:+" + phone);
+
+    return ResponseEntity.status(HttpStatus.FOUND)
+            .location(uri)
+            .build();
+}
 
     @PutMapping("/vehicle/{id}")
     public VehicleOwner updateVehicle(@PathVariable Long id, @RequestBody VehicleOwner updated) {
