@@ -64,6 +64,7 @@ public class StickerSheetGenerator {
 
         pdf.close();
 
+        
         return baos.toByteArray();
     }
 }
