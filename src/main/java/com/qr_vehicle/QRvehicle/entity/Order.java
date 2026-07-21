@@ -48,6 +48,9 @@ public class Order {
 
     private String tagId;
 
+    @Column(name = "sticker_type")
+    private String stickerType;
+
     private Boolean tagAssigned = false;
 
     private Long vehicleOwnerId;
