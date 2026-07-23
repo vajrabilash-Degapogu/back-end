@@ -56,13 +56,12 @@ public class TagBatchService {
 
     public byte[] generateSheetPdf(String sheetCode) throws Exception {
 
-        System.out.println("Loading Sheet : " + sheetCode);
+        
 
         List<TagInventory> tags =
                 tagInventoryRepository.findBySheetCode(sheetCode);
 
-        System.out.println("Tags Found : " + tags.size());
-
+       
         return StickerSheetGenerator.generate(tags);
     }
 
@@ -70,12 +69,12 @@ public class TagBatchService {
 
     public byte[] generateBatchPdf(String batchCode) throws Exception {
 
-        System.out.println("Loading Batch : " + batchCode);
+        
 
         List<TagInventory> inventory =
                 tagInventoryRepository.findByBatchCode(batchCode);
 
-        System.out.println("Inventory Found : " + inventory.size());
+       
 
         return StickerSheetGenerator.generate(inventory);
     }
@@ -83,23 +82,20 @@ public class TagBatchService {
     @Transactional
     public TagBatch generateBatch(String stickerType, Integer vehicleCount) {
 
-        System.out.println("==================================");
-        System.out.println("START GENERATE BATCH");
-        System.out.println("Sticker Type : " + stickerType);
-        System.out.println("Vehicle Count : " + vehicleCount);
+ 
 
         final int VEHICLES_PER_SHEET = 10;
 
         long totalBatch = batchRepository.count() + 1;
 
-        System.out.println("Existing Batch Count : " + (totalBatch - 1));
+        
 
         String batchCode =
                 BatchCodeGenerator.generate(
                         stickerType,
                         totalBatch);
 
-        System.out.println("Generated Batch Code : " + batchCode);
+       
 
         TagBatch batch = new TagBatch();
 
@@ -111,32 +107,28 @@ public class TagBatchService {
 
         batch = batchRepository.save(batch);
 
-        System.out.println("Batch Saved");
+        
 
         int totalSheets =
                 (int) Math.ceil((double) vehicleCount / VEHICLES_PER_SHEET);
 
-        System.out.println("Total Sheets : " + totalSheets);
+        
 
         int remainingVehicles = vehicleCount;
 
         for (int sheet = 1; sheet <= totalSheets; sheet++) {
 
-            System.out.println("--------------------------------");
-
-            System.out.println("Creating Sheet : " + sheet);
 
             int vehiclesThisSheet =
                     Math.min(
                             remainingVehicles,
                             VEHICLES_PER_SHEET);
 
-            System.out.println("Vehicles In Sheet : " + vehiclesThisSheet);
+           
 
             String sheetCode =
                     batchCode + "-S" + String.format("%02d", sheet);
 
-            System.out.println("Sheet Code : " + sheetCode);
 
             TagSheet tagSheet = new TagSheet();
 
@@ -148,7 +140,7 @@ public class TagBatchService {
 
             tagSheetService.save(tagSheet);
 
-            System.out.println("Sheet Saved");
+           
 
             generateSheetInventory(
                     batchCode,
@@ -159,11 +151,10 @@ public class TagBatchService {
 
             remainingVehicles -= vehiclesThisSheet;
 
-            System.out.println("Remaining Vehicles : " + remainingVehicles);
+            
         }
 
-        System.out.println("BATCH COMPLETED");
-        System.out.println("==================================");
+        
 
         return batch;
     }
@@ -175,7 +166,7 @@ public class TagBatchService {
             String stickerType,
             int vehicles) {
 
-        System.out.println("Generating Inventory");
+       
 
         int pair = 1;
 
@@ -185,15 +176,12 @@ public class TagBatchService {
 
                 if (pair > vehicles) {
 
-                    System.out.println("Inventory Completed");
+                   
 
                     return;
                 }
 
-                System.out.println("----------------------");
-                System.out.println("Pair : " + pair);
-                System.out.println("Row : " + row);
-                System.out.println("Column : " + col);
+                
 
                 TagInventory inventory = new TagInventory();
 
@@ -206,14 +194,14 @@ public class TagBatchService {
                 String tagId =
                         inventoryService.generateRandomTagId();
 
-                System.out.println("Generated Tag ID : " + tagId);
+                
 
                 inventory.setTagId(tagId);
 
                 String uniqueCode =
                         inventoryService.generateUniqueCode();
 
-                System.out.println("Generated UUID : " + uniqueCode);
+                
 
                 inventory.setUniqueCode(uniqueCode);
 
@@ -225,8 +213,7 @@ public class TagBatchService {
 
                 inventoryService.save(inventory);
 
-                System.out.println("Inventory Saved");
-
+                
                 pair++;
             }
         }

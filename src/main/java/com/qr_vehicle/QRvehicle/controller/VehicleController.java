@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 // import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -54,7 +55,7 @@ public class VehicleController {
     public VehicleOwner add( @Validated @RequestBody VehicleOwner v) {
         return vehicleService.save(v);
     }
-
+    
     @GetMapping("/tag-pdf/{code}")
     public ResponseEntity<byte[]> getTagPdf(@PathVariable String code) throws Exception {
 
@@ -69,7 +70,7 @@ public class VehicleController {
         .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
         .body(pdf);
     }
-
+    
     @GetMapping("/vehicle/{code}")
     public ResponseEntity<VehicleOwner> get(@PathVariable String code) {
 
@@ -80,12 +81,13 @@ public class VehicleController {
             .header("Pragma", "no-cache")
             .body(v);
     }
-
+    
     @GetMapping("/all")
     public List<VehicleOwner> getAllVehicles() {
         return vehicleService.getAll();
     }
 
+    
     @GetMapping("/vehicle/count")
     public long getVehicleCount() {
     return vehicleService.count();
@@ -94,6 +96,7 @@ public class VehicleController {
     
 
     // CALL
+    
     @GetMapping("/call/{code}")
 public ResponseEntity<Void> call(@PathVariable String code) {
 
@@ -144,6 +147,7 @@ public ResponseEntity<Void> call(@PathVariable String code) {
             .build();
     }
 
+    
     @GetMapping("/vehicle/paginated")
     public Page<VehicleOwner> getVehiclesPaginated(
         @RequestParam int page,
@@ -153,6 +157,7 @@ public ResponseEntity<Void> call(@PathVariable String code) {
     }
 
     // 🔥 CONVERT ORDER → CUSTOMER
+    
     @PostMapping("/from-order/{orderId}")
     public VehicleOwner createFromOrder(@PathVariable Long orderId) {
 

@@ -58,16 +58,16 @@ public class TagInventoryService {
         String tag = String.valueOf(
                 10000000 + random.nextInt(90000000));
 
-        System.out.println("Trying Tag ID : " + tag);
+        
 
         if (repository.findByTagId(tag).isEmpty()) {
 
-            System.out.println("Accepted Tag ID : " + tag);
+           
 
             return tag;
         }
 
-        System.out.println("Duplicate Tag ID, retrying...");
+        
     }
 }
 
@@ -87,7 +87,7 @@ public class TagInventoryService {
 
     String uuid = UUID.randomUUID().toString();
 
-    System.out.println("Generated UUID : " + uuid);
+    
 
     return uuid;
 }

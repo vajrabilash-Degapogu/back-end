@@ -71,8 +71,8 @@ public ResponseEntity<byte[]> downloadSheetPdf(
 
     return ResponseEntity.ok()
             .header(
-                    "Content-Disposition",
-                    "attachment; filename=" + sheetCode + ".pdf")
+                "Content-Disposition",
+                "attachment; filename=" + sheetCode + ".pdf")
             .contentType(MediaType.APPLICATION_PDF)
             .body(pdf);
 }

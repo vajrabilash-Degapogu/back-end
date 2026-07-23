@@ -34,17 +34,12 @@ public class TagBatchController {
     @PostMapping("/generate")
     public TagBatch generateBatch(@RequestBody GenerateBatchRequest request) {
 
-        System.out.println("========== GENERATE REQUEST ==========");
-        System.out.println("Sticker Type : " + request.getStickerType());
-        System.out.println("Vehicle Count: " + request.getVehicleCount());
-
+       
         TagBatch batch = tagBatchService.generateBatch(
                 request.getStickerType(),
                 request.getVehicleCount());
 
-        System.out.println("========== GENERATE SUCCESS ==========");
-        System.out.println("Batch Code : " + batch.getBatchCode());
-
+        
         return batch;
     }
 
@@ -52,11 +47,11 @@ public class TagBatchController {
     public ResponseEntity<byte[]> sheetPdf(
             @PathVariable String sheetCode) throws Exception {
 
-        System.out.println("Generating Sheet PDF : " + sheetCode);
+        
 
         byte[] pdf = tagBatchService.generateSheetPdf(sheetCode);
 
-        System.out.println("PDF Generated Successfully");
+        
 
         return ResponseEntity.ok()
                 .header(
@@ -70,11 +65,11 @@ public class TagBatchController {
     public ResponseEntity<byte[]> pdf(
             @PathVariable String batchCode) throws Exception {
 
-        System.out.println("Generating Batch PDF : " + batchCode);
+        
 
         byte[] pdf = tagBatchService.generateBatchPdf(batchCode);
 
-        System.out.println("Batch PDF Generated");
+        
 
         return ResponseEntity.ok()
                 .header(
