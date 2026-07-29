@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.qr_vehicle.QRvehicle.entity.Order;
 import com.qr_vehicle.QRvehicle.service.OrderService;
 
@@ -13,7 +13,7 @@ import com.qr_vehicle.QRvehicle.service.OrderService;
 @CrossOrigin(
     origins = {
         "https://owntag.in",
-        "https://www.owntag.in",
+        "https://www.owntag.in"
         // "http://localhost:3000"
     },
     allowCredentials = "true"
@@ -39,6 +39,7 @@ public class OrderController {
     // =========================
     // GET ALL ORDERS
     // =========================
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<Order> getOrders() {
         return service.getAll();
@@ -55,6 +56,7 @@ public class OrderController {
     // =========================
     // UPDATE STATUS
     // =========================
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/status")
     public Order updateStatus(
             @PathVariable Long id,
@@ -66,6 +68,7 @@ public class OrderController {
     // =========================
     // UPDATE ORDER
     // =========================
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public Order updateOrder(
             @PathVariable Long id,
@@ -84,6 +87,7 @@ public class OrderController {
     // =========================
     // DELETE ORDER
     // =========================
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteOrder(@PathVariable Long id) {
         service.delete(id);
@@ -103,6 +107,7 @@ public class OrderController {
     // =========================
     // TOTAL ORDER COUNT
     // =========================
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/count")
     public long getOrderCount() {
         return service.count();

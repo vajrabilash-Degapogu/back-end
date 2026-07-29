@@ -33,35 +33,41 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    .csrf(csrf -> csrf.disable())
+    .cors(Customizer.withDefaults())
+    .sessionManagement(session ->
+        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                .authorizeHttpRequests(auth -> auth
+    .authorizeHttpRequests(auth -> auth
 
-                        // Public APIs
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/api/order",
-                                "/api/order/track/**",
-                                "/api/vehicle/**",
-                                "/api/call/**",
-                                "/api/call-emergency/**",
-                                "/api/whatsapp/**",
-                                "/api/qr/**",
-                                "/api/tag-pdf/**"
-                        ).permitAll()
+        .requestMatchers("/api/auth/**").permitAll()
 
-                        // Everything else requires login
-                        .anyRequest().authenticated()
+        .requestMatchers(
+            org.springframework.http.HttpMethod.POST,
+            "/api/order"
+        ).permitAll()
 
-                )
+        .requestMatchers(
+            org.springframework.http.HttpMethod.GET,
+            "/api/order/track/**"
+        ).permitAll()
 
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+        .requestMatchers(
+            "/api/vehicle/*",
+            "/api/call/*",
+            "/api/call-emergency/*",
+            "/api/whatsapp/*",
+            "/api/qr/*",
+            "/api/tag-pdf/*"
+        ).permitAll()
+
+        .anyRequest().authenticated()
+    )
+
+    .addFilterBefore(
+        jwtAuthenticationFilter,
+        UsernamePasswordAuthenticationFilter.class
+    );
 
         return http.build();
     }
@@ -78,7 +84,7 @@ CorsConfigurationSource corsConfigurationSource() {
 
     configuration.setAllowedOrigins(List.of(
         //     "http://localhost:3000",
-        //     "http://localhost:5173",
+        //     "http://localhost:5173"
             "https://owntag.in",
             "https://www.owntag.in"
     ));

@@ -8,6 +8,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpHeaders;
 // import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import com.qr_vehicle.QRvehicle.dto.PublicVehicleDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -34,7 +35,7 @@ import com.qr_vehicle.QRvehicle.util.TagPdfGenerator;
 @CrossOrigin(
 origins = {
     // "http://localhost:3000",
-    // "http://localhost:5173",
+    // "http://localhost:5173"
     "https://owntag.in",
     "https://www.owntag.in"
 },
@@ -50,7 +51,7 @@ public class VehicleController {
         this.vehicleService = vehicleService;
         this.orderService = orderService;
     } // ✅ FIXED
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
     public VehicleOwner add( @Validated @RequestBody VehicleOwner v) {
         return vehicleService.save(v);
@@ -72,22 +73,28 @@ public class VehicleController {
     }
     
     @GetMapping("/vehicle/{code}")
-    public ResponseEntity<VehicleOwner> get(@PathVariable String code) {
+    public ResponseEntity<PublicVehicleDto> get(@PathVariable String code) {
 
     VehicleOwner v = vehicleService.getByCode(code);
+
+    PublicVehicleDto dto = new PublicVehicleDto();
+    dto.setOwnerName(v.getOwnerName());
+    dto.setVehicleNumber(v.getVehicleNumber());
+    dto.setEmergencyPhone(v.getEmergencyPhone());
 
     return ResponseEntity.ok()
             .header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
             .header("Pragma", "no-cache")
-            .body(v);
+            .body(dto);
     }
-    
+
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public List<VehicleOwner> getAllVehicles() {
         return vehicleService.getAll();
     }
 
-    
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/vehicle/count")
     public long getVehicleCount() {
     return vehicleService.count();
@@ -118,7 +125,7 @@ public ResponseEntity<Void> call(@PathVariable String code) {
             .location(uri)
             .build();
 }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/vehicle/{id}")
     public void deleteVehicle(@PathVariable Long id) {
     vehicleService.delete(id);
@@ -148,6 +155,7 @@ public ResponseEntity<Void> call(@PathVariable String code) {
     }
 
     
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/vehicle/paginated")
     public Page<VehicleOwner> getVehiclesPaginated(
         @RequestParam int page,
@@ -158,6 +166,7 @@ public ResponseEntity<Void> call(@PathVariable String code) {
 
     // 🔥 CONVERT ORDER → CUSTOMER
     
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/from-order/{orderId}")
     public VehicleOwner createFromOrder(@PathVariable Long orderId) {
 
@@ -217,7 +226,7 @@ public ResponseEntity<Void> callEmergency(@PathVariable String code) {
             .location(uri)
             .build();
 }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/vehicle/{id}")
     public VehicleOwner updateVehicle(@PathVariable Long id, @RequestBody VehicleOwner updated) {
 
