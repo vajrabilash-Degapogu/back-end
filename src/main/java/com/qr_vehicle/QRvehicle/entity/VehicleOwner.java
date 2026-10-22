@@ -48,9 +48,6 @@ public class VehicleOwner {
     @Column(length = 35)
     private String whatsappUsername;
 
-    @Column(length = 500)
-    private String whatsappUsernameLink;
-
     public String getTagId() {
     return tagId;
 }
