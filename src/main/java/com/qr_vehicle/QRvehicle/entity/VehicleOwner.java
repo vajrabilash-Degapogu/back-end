@@ -1,4 +1,5 @@
 package com.qr_vehicle.QRvehicle.entity;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,10 +31,7 @@ public class VehicleOwner {
     @Column(nullable = false)
     private Integer sheetNumber;
 
-    
     private String emergencyName;
-
-    
     private String emergencyPhone;
 
     @NotBlank
@@ -45,27 +43,34 @@ public class VehicleOwner {
     @Column(unique = true)
     private String uniqueCode;
 
+    // Optional contact details: existing database rows remain compatible.
+    @Column(length = 64)
+    private String whatsappUsername;
+
+    @Column(length = 500)
+    private String whatsappUsernameLink;
+
     public String getTagId() {
-    return tagId;
-}
+        return tagId;
+    }
 
-public void setTagId(String tagId) {
-    this.tagId = tagId;
-}
+    public void setTagId(String tagId) {
+        this.tagId = tagId;
+    }
 
-public String getSheetCode() {
-    return sheetCode;
-}
+    public String getSheetCode() {
+        return sheetCode;
+    }
 
-public void setSheetCode(String sheetCode) {
-    this.sheetCode = sheetCode;
-}
+    public void setSheetCode(String sheetCode) {
+        this.sheetCode = sheetCode;
+    }
 
-public Integer getSheetNumber() {
-    return sheetNumber;
-}
+    public Integer getSheetNumber() {
+        return sheetNumber;
+    }
 
-public void setSheetNumber(Integer sheetNumber) {
-    this.sheetNumber = sheetNumber;
-}
+    public void setSheetNumber(Integer sheetNumber) {
+        this.sheetNumber = sheetNumber;
+    }
 }
