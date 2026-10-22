@@ -2,7 +2,6 @@ package com.qr_vehicle.QRvehicle.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.net.URI;
 import java.util.regex.Pattern;
 
 import org.springframework.data.domain.Page;
@@ -41,8 +40,6 @@ public class OrderService {
         order.setVehicleNumber(vehicleNumber);
 
         order.setWhatsappUsername(normalizeWhatsAppUsername(order.getWhatsappUsername()));
-        order.setWhatsappUsernameLink(validateWhatsAppLink(order.getWhatsappUsernameLink(), order.getWhatsappUsername()));
-        requireWhatsAppFieldsTogether(order.getWhatsappUsername(), order.getWhatsappUsernameLink());
 
         // Already registered as customer
         if (vehicleRepo.existsByVehicleNumber(vehicleNumber)) {
@@ -125,8 +122,6 @@ public class OrderService {
         order.setEmergencyPhone(updated.getEmergencyPhone() == null ? "" : updated.getEmergencyPhone().trim());
         order.setVehicleNumber(vehicleNumber);
         order.setWhatsappUsername(normalizeWhatsAppUsername(updated.getWhatsappUsername()));
-        order.setWhatsappUsernameLink(validateWhatsAppLink(updated.getWhatsappUsernameLink(), order.getWhatsappUsername()));
-        requireWhatsAppFieldsTogether(order.getWhatsappUsername(), order.getWhatsappUsernameLink());
 
         return repo.save(order);
     }
@@ -148,54 +143,6 @@ public class OrderService {
                     "Enter a valid WhatsApp username (3-35 letters, numbers, dots or underscores).");
         }
         return value;
-    }
-
-    private static void requireWhatsAppFieldsTogether(String username, String link) {
-        if ((username == null) != (link == null)) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Enter both the WhatsApp username and official sharing link, or leave both blank.");
-        }
-    }
-
-    private static String validateWhatsAppLink(String rawLink, String username) {
-        if (rawLink == null || rawLink.isBlank()) {
-            return null;
-        }
-
-        try {
-            if (username == null || username.isBlank()) {
-                throw new IllegalArgumentException();
-            }
-
-            URI uri = URI.create(rawLink.trim());
-            if (!"https".equalsIgnoreCase(uri.getScheme())
-                    || !"wa.me".equalsIgnoreCase(uri.getHost())
-                    || uri.getUserInfo() != null
-                    || uri.getPort() != -1
-                    || uri.getRawQuery() != null
-                    || uri.getFragment() != null) {
-                throw new IllegalArgumentException();
-            }
-
-            String path = uri.getPath();
-            if (path == null || !path.startsWith("/")) {
-                throw new IllegalArgumentException();
-            }
-
-            String linkedUsername = path.substring(1);
-            if (linkedUsername.isBlank()
-                    || linkedUsername.contains("/")
-                    || !linkedUsername.equalsIgnoreCase(username)) {
-                throw new IllegalArgumentException();
-            }
-
-            return uri.toASCIIString();
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Paste the official https://wa.me/YourUsername link copied from WhatsApp. It must match the username.");
-        }
     }
 
     // =========================
