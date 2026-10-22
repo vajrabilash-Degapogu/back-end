@@ -9,7 +9,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
+
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,31 +27,47 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults())
-            .sessionManagement(session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers(
-                            org.springframework.http.HttpMethod.POST,
-                            "/api/order").permitAll()
-                    .requestMatchers(
-                            org.springframework.http.HttpMethod.GET,
-                            "/api/order/track/**").permitAll()
-                    .requestMatchers(
-                            "/api/vehicle/*",
-                            "/api/call-emergency/*",
-                            "/api/whatsapp/*",
-                            "/api/qr/*",
-                            "/api/tag-pdf/*").permitAll()
-                    .anyRequest().authenticated())
-            .addFilterBefore(jwtAuthenticationFilter,
-                    UsernamePasswordAuthenticationFilter.class);
+    .csrf(csrf -> csrf.disable())
+    .cors(Customizer.withDefaults())
+    .sessionManagement(session ->
+        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+    .authorizeHttpRequests(auth -> auth
+
+        .requestMatchers("/api/auth/**").permitAll()
+
+        .requestMatchers(
+            org.springframework.http.HttpMethod.POST,
+            "/api/order"
+        ).permitAll()
+
+        .requestMatchers(
+            org.springframework.http.HttpMethod.GET,
+            "/api/order/track/**"
+        ).permitAll()
+
+        .requestMatchers(
+            "/api/vehicle/*",
+            "/api/call-emergency/*",
+            "/api/whatsapp/*",
+            "/api/qr/*",
+            "/api/tag-pdf/*"
+        ).permitAll()
+
+        .anyRequest().authenticated()
+    )
+
+    .addFilterBefore(
+        jwtAuthenticationFilter,
+        UsernamePasswordAuthenticationFilter.class
+    );
+
         return http.build();
     }
 
@@ -59,25 +77,41 @@ public class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-                "https://owntag.in",
-                "https://www.owntag.in"));
-        configuration.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+CorsConfigurationSource corsConfigurationSource() {
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+    CorsConfiguration configuration = new CorsConfiguration();
 
-    @Bean
-    AuthenticationManager authenticationManager(
-            AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
-    }
+    configuration.setAllowedOrigins(List.of(
+        //     "http://localhost:3000",
+        //     "http://localhost:5173"
+            "https://owntag.in",
+            "https://www.owntag.in"
+    ));
+
+    configuration.setAllowedMethods(List.of(
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "OPTIONS"
+    ));
+
+    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source =
+            new UrlBasedCorsConfigurationSource();
+
+    source.registerCorsConfiguration("/**", configuration);
+
+    return source;
+}
+@Bean
+AuthenticationManager authenticationManager(
+        AuthenticationConfiguration configuration)
+        throws Exception {
+
+    return configuration.getAuthenticationManager();
+}
+
 }
