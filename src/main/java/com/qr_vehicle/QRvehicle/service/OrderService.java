@@ -46,6 +46,7 @@ public class OrderService {
 
         order.setWhatsappUsername(normalizeWhatsAppUsername(order.getWhatsappUsername()));
         order.setWhatsappUsernameLink(validateWhatsAppLink(order.getWhatsappUsernameLink()));
+        requireWhatsAppFieldsTogether(order.getWhatsappUsername(), order.getWhatsappUsernameLink());
 
         // Already registered as customer
         if (vehicleRepo.existsByVehicleNumber(vehicleNumber)) {
@@ -129,6 +130,7 @@ public class OrderService {
         order.setVehicleNumber(vehicleNumber);
         order.setWhatsappUsername(normalizeWhatsAppUsername(updated.getWhatsappUsername()));
         order.setWhatsappUsernameLink(validateWhatsAppLink(updated.getWhatsappUsernameLink()));
+        requireWhatsAppFieldsTogether(order.getWhatsappUsername(), order.getWhatsappUsernameLink());
 
         return repo.save(order);
     }
@@ -152,6 +154,14 @@ public class OrderService {
         return value;
     }
 
+    private static void requireWhatsAppFieldsTogether(String username, String link) {
+        if ((username == null) != (link == null)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Enter both the WhatsApp username and official sharing link, or leave both blank.");
+        }
+    }
+
     private static String validateWhatsAppLink(String rawLink) {
         if (rawLink == null || rawLink.isBlank()) {
             return null;
@@ -173,9 +183,11 @@ public class OrderService {
             String path = uri.getPath();
             if (path != null) {
                 String firstSegment = path.replaceFirst("^/", "").split("/", 2)[0];
-                boolean allDigits = !firstSegment.isEmpty()
-                        && firstSegment.chars().allMatch(Character::isDigit);
-                if (allDigits && firstSegment.length() >= 8 && firstSegment.length() <= 15) {
+                String candidate = firstSegment.startsWith("+")
+                        ? firstSegment.substring(1) : firstSegment;
+                boolean allDigits = !candidate.isEmpty()
+                        && candidate.chars().allMatch(Character::isDigit);
+                if (allDigits && candidate.length() >= 8 && candidate.length() <= 15) {
                     throw new IllegalArgumentException();
                 }
             }
