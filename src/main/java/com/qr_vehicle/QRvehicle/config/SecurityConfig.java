@@ -43,7 +43,6 @@ public class SecurityConfig {
                             "/api/order/track/**").permitAll()
                     .requestMatchers(
                             "/api/vehicle/*",
-                            "/api/call/*",
                             "/api/call-emergency/*",
                             "/api/whatsapp/*",
                             "/api/qr/*",
