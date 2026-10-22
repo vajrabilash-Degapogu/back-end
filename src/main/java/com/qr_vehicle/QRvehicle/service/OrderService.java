@@ -2,6 +2,10 @@ package com.qr_vehicle.QRvehicle.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.net.URI;
+import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,6 +19,11 @@ import com.qr_vehicle.QRvehicle.repository.VehicleRepository;
 
 @Service
 public class OrderService {
+
+    private static final Pattern WHATSAPP_USERNAME =
+            Pattern.compile("^[A-Za-z0-9._]{3,35}$");
+    private static final Set<String> WHATSAPP_HOSTS =
+            Set.of("wa.me", "whatsapp.com", "www.whatsapp.com", "api.whatsapp.com");
 
     private final OrderRepository repo;
     private final VehicleRepository vehicleRepo;
@@ -34,6 +43,9 @@ public class OrderService {
                 .toUpperCase();
 
         order.setVehicleNumber(vehicleNumber);
+
+        order.setWhatsappUsername(normalizeWhatsAppUsername(order.getWhatsappUsername()));
+        order.setWhatsappUsernameLink(validateWhatsAppLink(order.getWhatsappUsernameLink()));
 
         // Already registered as customer
         if (vehicleRepo.existsByVehicleNumber(vehicleNumber)) {
@@ -115,8 +127,65 @@ public class OrderService {
         order.setEmergencyName(updated.getEmergencyName().trim());
         order.setEmergencyPhone(updated.getEmergencyPhone().trim());
         order.setVehicleNumber(vehicleNumber);
+        order.setWhatsappUsername(normalizeWhatsAppUsername(updated.getWhatsappUsername()));
+        order.setWhatsappUsernameLink(validateWhatsAppLink(updated.getWhatsappUsernameLink()));
 
         return repo.save(order);
+    }
+
+
+    private static String normalizeWhatsAppUsername(String username) {
+        if (username == null || username.isBlank()) {
+            return null;
+        }
+
+        String value = username.trim();
+        if (value.startsWith("@")) {
+            value = value.substring(1);
+        }
+
+        if (!WHATSAPP_USERNAME.matcher(value).matches()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Enter a valid WhatsApp username (3-35 letters, numbers, dots or underscores).");
+        }
+        return value;
+    }
+
+    private static String validateWhatsAppLink(String rawLink) {
+        if (rawLink == null || rawLink.isBlank()) {
+            return null;
+        }
+
+        try {
+            URI uri = URI.create(rawLink.trim());
+            String host = uri.getHost();
+
+            if (!"https".equalsIgnoreCase(uri.getScheme())
+                    || host == null
+                    || !WHATSAPP_HOSTS.contains(host.toLowerCase(Locale.ROOT))
+                    || uri.getUserInfo() != null
+                    || uri.getPort() != -1
+                    || uri.getFragment() != null) {
+                throw new IllegalArgumentException();
+            }
+
+            String path = uri.getPath();
+            if (path != null) {
+                String firstSegment = path.replaceFirst("^/", "").split("/", 2)[0];
+                boolean allDigits = !firstSegment.isEmpty()
+                        && firstSegment.chars().allMatch(Character::isDigit);
+                if (allDigits && firstSegment.length() >= 8 && firstSegment.length() <= 15) {
+                    throw new IllegalArgumentException();
+                }
+            }
+
+            return uri.toASCIIString();
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Paste the official WhatsApp username sharing link, not a phone-number link.");
+        }
     }
 
     // =========================
