@@ -54,4 +54,11 @@ public class Order {
     private Boolean tagAssigned = false;
 
     private Long vehicleOwnerId;
+
+    // Optional WhatsApp username-based contact for the QR tag.
+    @Column(length = 35)
+    private String whatsappUsername;
+
+    @Column(length = 500)
+    private String whatsappUsernameLink;
 }
