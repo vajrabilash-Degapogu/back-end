@@ -44,7 +44,7 @@ public class VehicleOwner {
     private String uniqueCode;
 
     // Optional contact details: existing database rows remain compatible.
-    @Column(length = 64)
+    @Column(length = 35)
     private String whatsappUsername;
 
     @Column(length = 500)
