@@ -180,6 +180,16 @@ public class OrderService {
                 throw new IllegalArgumentException();
             }
 
+            String query = uri.getRawQuery();
+            if (query != null) {
+                for (String parameter : query.toLowerCase(Locale.ROOT).split("&")) {
+                    String key = parameter.split("=", 2)[0];
+                    if ("phone".equals(key) || "phone_number".equals(key)) {
+                        throw new IllegalArgumentException();
+                    }
+                }
+            }
+
             String path = uri.getPath();
             if (path != null) {
                 String firstSegment = path.replaceFirst("^/", "").split("/", 2)[0];
