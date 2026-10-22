@@ -3,8 +3,6 @@ package com.qr_vehicle.QRvehicle.service;
 import java.util.List;
 import java.util.Optional;
 import java.net.URI;
-import java.util.Locale;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.data.domain.Page;
@@ -22,8 +20,6 @@ public class OrderService {
 
     private static final Pattern WHATSAPP_USERNAME =
             Pattern.compile("^[A-Za-z0-9._]{3,35}$");
-    private static final Set<String> WHATSAPP_HOSTS =
-            Set.of("wa.me", "whatsapp.com", "www.whatsapp.com", "api.whatsapp.com");
 
     private final OrderRepository repo;
     private final VehicleRepository vehicleRepo;
@@ -45,7 +41,7 @@ public class OrderService {
         order.setVehicleNumber(vehicleNumber);
 
         order.setWhatsappUsername(normalizeWhatsAppUsername(order.getWhatsappUsername()));
-        order.setWhatsappUsernameLink(validateWhatsAppLink(order.getWhatsappUsernameLink()));
+        order.setWhatsappUsernameLink(validateWhatsAppLink(order.getWhatsappUsernameLink(), order.getWhatsappUsername()));
         requireWhatsAppFieldsTogether(order.getWhatsappUsername(), order.getWhatsappUsernameLink());
 
         // Already registered as customer
@@ -129,7 +125,7 @@ public class OrderService {
         order.setEmergencyPhone(updated.getEmergencyPhone() == null ? "" : updated.getEmergencyPhone().trim());
         order.setVehicleNumber(vehicleNumber);
         order.setWhatsappUsername(normalizeWhatsAppUsername(updated.getWhatsappUsername()));
-        order.setWhatsappUsernameLink(validateWhatsAppLink(updated.getWhatsappUsernameLink()));
+        order.setWhatsappUsernameLink(validateWhatsAppLink(updated.getWhatsappUsernameLink(), order.getWhatsappUsername()));
         requireWhatsAppFieldsTogether(order.getWhatsappUsername(), order.getWhatsappUsernameLink());
 
         return repo.save(order);
@@ -162,51 +158,43 @@ public class OrderService {
         }
     }
 
-    private static String validateWhatsAppLink(String rawLink) {
+    private static String validateWhatsAppLink(String rawLink, String username) {
         if (rawLink == null || rawLink.isBlank()) {
             return null;
         }
 
         try {
-            URI uri = URI.create(rawLink.trim());
-            String host = uri.getHost();
+            if (username == null || username.isBlank()) {
+                throw new IllegalArgumentException();
+            }
 
+            URI uri = URI.create(rawLink.trim());
             if (!"https".equalsIgnoreCase(uri.getScheme())
-                    || host == null
-                    || !WHATSAPP_HOSTS.contains(host.toLowerCase(Locale.ROOT))
+                    || !"wa.me".equalsIgnoreCase(uri.getHost())
                     || uri.getUserInfo() != null
                     || uri.getPort() != -1
+                    || uri.getRawQuery() != null
                     || uri.getFragment() != null) {
                 throw new IllegalArgumentException();
             }
 
-            String query = uri.getRawQuery();
-            if (query != null) {
-                for (String parameter : query.toLowerCase(Locale.ROOT).split("&")) {
-                    String key = parameter.split("=", 2)[0];
-                    if ("phone".equals(key) || "phone_number".equals(key) || "phonenumber".equals(key)) {
-                        throw new IllegalArgumentException();
-                    }
-                }
+            String path = uri.getPath();
+            if (path == null || !path.startsWith("/")) {
+                throw new IllegalArgumentException();
             }
 
-            String path = uri.getPath();
-            if (path != null) {
-                String firstSegment = path.replaceFirst("^/", "").split("/", 2)[0];
-                String candidate = firstSegment.startsWith("+")
-                        ? firstSegment.substring(1) : firstSegment;
-                boolean allDigits = !candidate.isEmpty()
-                        && candidate.chars().allMatch(Character::isDigit);
-                if (allDigits && candidate.length() >= 8 && candidate.length() <= 15) {
-                    throw new IllegalArgumentException();
-                }
+            String linkedUsername = path.substring(1);
+            if (linkedUsername.isBlank()
+                    || linkedUsername.contains("/")
+                    || !linkedUsername.equalsIgnoreCase(username)) {
+                throw new IllegalArgumentException();
             }
 
             return uri.toASCIIString();
         } catch (RuntimeException ex) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Paste the official WhatsApp username sharing link, not a phone-number link.");
+                    "Paste the official https://wa.me/YourUsername link copied from WhatsApp. It must match the username.");
         }
     }
 
