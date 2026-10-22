@@ -214,7 +214,8 @@ public class VehicleController {
 
             return uri.toASCIIString();
         } catch (RuntimeException ex) {
-            throw new IllegalArgumentException(
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
                     "Use the official WhatsApp username sharing link copied from WhatsApp.");
         }
     }
