@@ -99,6 +99,7 @@ public class VehicleController {
         return vehicleService.count();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/call/{code}")
     public ResponseEntity<Void> call(@PathVariable String code) {
         VehicleOwner owner = vehicleService.getByCode(code);
