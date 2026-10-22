@@ -38,7 +38,7 @@ public class EmailOtpService {
         this.mailSender = mailSender;
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = ResponseStatusException.class)
     public void sendOtp(String rawEmail, String purpose) {
         String email = normalizeEmail(rawEmail);
         if (fromAddress == null || fromAddress.isBlank()) {
@@ -90,7 +90,7 @@ public class EmailOtpService {
         }
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = ResponseStatusException.class)
     public void verifyOtp(String rawEmail, String purpose, String otp) {
         String email = normalizeEmail(rawEmail);
         EmailOtpVerification record = repository.findByEmailAndPurpose(email, purpose)
