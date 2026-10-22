@@ -43,12 +43,12 @@ import com.qr_vehicle.QRvehicle.util.TagPdfGenerator;
 public class VehicleController {
 
     private static final Pattern WHATSAPP_USERNAME =
-            Pattern.compile("^[A-Za-z0-9._]{3,64}$");
+            Pattern.compile("^[A-Za-z0-9._]{3,35}$");
 
     // Redirect only to well-known WhatsApp-owned hosts. Confirm the exact share
     // link pattern from the user's WhatsApp app before enabling production.
     private static final Set<String> WHATSAPP_HOSTS =
-            Set.of("wa.me", "whatsapp.com", "www.whatsapp.com");
+            Set.of("wa.me", "whatsapp.com", "www.whatsapp.com", "api.whatsapp.com");
 
     private final VehicleService vehicleService;
     private final OrderService orderService;
@@ -82,9 +82,8 @@ public class VehicleController {
         PublicVehicleDto dto = new PublicVehicleDto();
         dto.setOwnerName(owner.getOwnerName());
         dto.setVehicleNumber(owner.getVehicleNumber());
-        dto.setEmergencyPhone(owner.getEmergencyPhone());
+        dto.setEmergencyContactAvailable(owner.getEmergencyPhone() != null && !owner.getEmergencyPhone().isBlank());
         dto.setWhatsappUsername(owner.getWhatsappUsername());
-        dto.setWhatsappUsernameLink(owner.getWhatsappUsernameLink());
         dto.setWhatsappAvailable(isValidWhatsAppContact(
                 owner.getWhatsappUsername(), owner.getWhatsappUsernameLink()));
 
@@ -182,6 +181,17 @@ public class VehicleController {
                     || uri.getFragment() != null) {
                 throw new IllegalArgumentException();
             }
+
+            String path = uri.getPath();
+            if (path != null) {
+                String firstSegment = path.replaceFirst("^/", "").split("/", 2)[0];
+                boolean allDigits = !firstSegment.isEmpty()
+                        && firstSegment.chars().allMatch(Character::isDigit);
+                if (allDigits && firstSegment.length() >= 8 && firstSegment.length() <= 15) {
+                    throw new IllegalArgumentException();
+                }
+            }
+
             return uri.toASCIIString();
         } catch (RuntimeException ex) {
             throw new IllegalArgumentException(
@@ -241,6 +251,8 @@ public class VehicleController {
         owner.setEmergencyPhone(order.getEmergencyPhone());
         owner.setVehicleNumber(order.getVehicleNumber());
         owner.setAddress(order.getAddress());
+        owner.setWhatsappUsername(normalizeUsername(order.getWhatsappUsername()));
+        owner.setWhatsappUsernameLink(validateWhatsAppLink(order.getWhatsappUsernameLink()));
 
         VehicleOwner saved = vehicleService.save(owner);
         orderService.delete(orderId);
