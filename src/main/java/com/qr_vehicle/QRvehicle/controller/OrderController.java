@@ -12,6 +12,7 @@ import com.qr_vehicle.QRvehicle.service.OrderService;
 @RequestMapping("/api/order")
 @CrossOrigin(
     origins = {
+        "http://localhost:3000",
         "https://owntag.in",
         "https://www.owntag.in"
         // "http://localhost:3000"
