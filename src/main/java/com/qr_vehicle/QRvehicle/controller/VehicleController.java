@@ -36,8 +36,7 @@ import com.qr_vehicle.QRvehicle.util.TagPdfGenerator;
 @RequestMapping("/api")
 @CrossOrigin(
 origins = {
-    // "http://localhost:3000",
-    // "http://localhost:5173"
+    "http://localhost:3000",
     "https://owntag.in",
     "https://www.owntag.in"
 },
@@ -181,6 +180,7 @@ public ResponseEntity<Void> call(@PathVariable String code) {
         v.setOwnerName(order.getName());
 
         v.setPhoneNumber(order.getPhone());
+        v.setEmail(order.getEmail());
 
         v.setEmergencyName(order.getEmergencyName());
 
@@ -240,6 +240,7 @@ public ResponseEntity<Void> callEmergency(@PathVariable String code) {
     v.setOwnerName(updated.getOwnerName());
 
     v.setPhoneNumber(updated.getPhoneNumber());
+    v.setEmail(updated.getEmail());
 
     v.setEmergencyName(updated.getEmergencyName());
 
