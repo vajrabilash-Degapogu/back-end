@@ -2,8 +2,6 @@ package com.qr_vehicle.QRvehicle.controller;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.data.domain.Page;
@@ -45,11 +43,6 @@ public class VehicleController {
 
     private static final Pattern WHATSAPP_USERNAME =
             Pattern.compile("^[A-Za-z0-9._]{3,35}$");
-
-    // Redirect only to well-known WhatsApp-owned hosts. Confirm the exact share
-    // link pattern from the user's WhatsApp app before enabling production.
-    private static final Set<String> WHATSAPP_HOSTS =
-            Set.of("wa.me");
 
     private final VehicleService vehicleService;
     private final OrderService orderService;
@@ -129,9 +122,12 @@ public class VehicleController {
     public ResponseEntity<Void> whatsapp(@PathVariable String code) {
         VehicleOwner owner = vehicleService.getByCode(code);
         String username = normalizeUsername(owner.getWhatsappUsername());
-        String link = validateWhatsAppLink(owner.getWhatsappUsernameLink(), username);
+        if (username == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-        if (username == null || link == null) {
+        String link = validateWhatsAppLink(owner.getWhatsappUsernameLink(), username);
+        if (link == null) {
             return ResponseEntity.notFound().build();
         }
 
@@ -170,7 +166,9 @@ public class VehicleController {
         }
         String value = username.trim().replaceFirst("^@", "");
         if (!WHATSAPP_USERNAME.matcher(value).matches()) {
-            throw new IllegalArgumentException("Invalid WhatsApp username format.");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Invalid WhatsApp username format.");
         }
         return value;
     }
