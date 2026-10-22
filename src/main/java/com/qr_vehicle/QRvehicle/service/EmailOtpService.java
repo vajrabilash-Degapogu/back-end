@@ -7,16 +7,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HexFormat;
 import java.util.Locale;
 
 @Service
@@ -28,14 +26,16 @@ public class EmailOtpService {
 
     private final EmailOtpRepository repository;
     private final JavaMailSender mailSender;
+    private final PasswordEncoder passwordEncoder;
     private final SecureRandom random = new SecureRandom();
 
     @Value("${app.mail.from:}")
     private String fromAddress;
 
-    public EmailOtpService(EmailOtpRepository repository, JavaMailSender mailSender) {
+    public EmailOtpService(EmailOtpRepository repository, JavaMailSender mailSender, PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.mailSender = mailSender;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(noRollbackFor = ResponseStatusException.class)
@@ -57,7 +57,7 @@ public class EmailOtpService {
         String otp = String.format(Locale.ROOT, "%06d", random.nextInt(1_000_000));
         record.setEmail(email);
         record.setPurpose(purpose);
-        record.setOtpHash(hash(otp));
+        record.setOtpHash(passwordEncoder.encode(otp));
         record.setExpiresAt(now.plus(OTP_LIFETIME));
         record.setVerifiedUntil(null);
         record.setLastSentAt(now);
@@ -103,8 +103,7 @@ public class EmailOtpService {
                 "OTP is invalid or expired. Request a new code.");
         }
 
-        if (!MessageDigest.isEqual(hash(otp).getBytes(StandardCharsets.UTF_8),
-                                   record.getOtpHash().getBytes(StandardCharsets.UTF_8))) {
+        if (!passwordEncoder.matches(otp, record.getOtpHash())) {
             record.setAttempts(record.getAttempts() + 1);
             repository.save(record);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect OTP.");
@@ -160,12 +159,4 @@ public class EmailOtpService {
         return normalized;
     }
 
-    private static String hash(String value) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
-        } catch (Exception ex) {
-            throw new IllegalStateException("SHA-256 is unavailable", ex);
-        }
-    }
 }
