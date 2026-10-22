@@ -8,13 +8,10 @@ public class PublicVehicleDto {
     private String ownerName;
     private String vehicleNumber;
 
-    // Public flag only. The public contact page should not receive phone numbers.
+    // Public flag and username only; phone numbers and share links remain server-side.
     private boolean whatsappAvailable;
     private String whatsappUsername;
-    private String whatsappUsernameLink;
 
-    // Existing UI currently uses this only to decide whether to show the
-    // emergency button. A later privacy hardening change should replace this
-    // with a boolean so the actual emergency number is not sent publicly.
-    private String emergencyPhone;
+    // Only a presence flag is exposed for emergency contact.
+    private boolean emergencyContactAvailable;
 }
