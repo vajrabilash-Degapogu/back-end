@@ -194,7 +194,7 @@ public class VehicleController {
             if (query != null) {
                 for (String parameter : query.toLowerCase(Locale.ROOT).split("&")) {
                     String key = parameter.split("=", 2)[0];
-                    if ("phone".equals(key) || "phone_number".equals(key)) {
+                    if ("phone".equals(key) || "phone_number".equals(key) || "phonenumber".equals(key)) {
                         throw new IllegalArgumentException();
                     }
                 }
