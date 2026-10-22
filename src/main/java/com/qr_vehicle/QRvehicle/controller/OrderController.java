@@ -73,15 +73,8 @@ public class OrderController {
     public Order updateOrder(
             @PathVariable Long id,
             @RequestBody Order updated) {
-
-        Order order = service.getById(id);
-
-        order.setName(updated.getName());
-        order.setPhone(updated.getPhone());
-        order.setAddress(updated.getAddress());
-        order.setVehicleNumber(updated.getVehicleNumber());
-
-        return service.save(order);
+        updated.setId(id);
+        return service.update(updated);
     }
 
     // =========================
