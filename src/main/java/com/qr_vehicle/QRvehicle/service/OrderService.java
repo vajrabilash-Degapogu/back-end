@@ -22,10 +22,12 @@ public class OrderService {
 
     private final OrderRepository repo;
     private final VehicleRepository vehicleRepo;
+    private final EmailOtpService emailOtpService;
 
-    public OrderService(OrderRepository repo, VehicleRepository vehicleRepo) {
+    public OrderService(OrderRepository repo, VehicleRepository vehicleRepo, EmailOtpService emailOtpService) {
         this.repo = repo;
         this.vehicleRepo = vehicleRepo;
+        this.emailOtpService = emailOtpService;
     }
 
     // =========================
@@ -40,6 +42,7 @@ public class OrderService {
         order.setVehicleNumber(vehicleNumber);
 
         order.setWhatsappUsername(normalizeWhatsAppUsername(order.getWhatsappUsername()));
+        order.setEmail(order.getEmail().trim().toLowerCase(java.util.Locale.ROOT));
 
         // Already registered as customer
         if (vehicleRepo.existsByVehicleNumber(vehicleNumber)) {
@@ -57,6 +60,8 @@ public class OrderService {
             );
         }
 
+        // OTP verification is enforced server-side; clients cannot bypass the UI.
+        emailOtpService.consumeVerifiedEmail(order.getEmail(), "ORDER");
         return repo.save(order);
     }
 
@@ -117,6 +122,7 @@ public class OrderService {
 
         order.setName(updated.getName().trim());
         order.setPhone(updated.getPhone().trim());
+        order.setEmail(updated.getEmail() == null ? "" : updated.getEmail().trim().toLowerCase(java.util.Locale.ROOT));
         order.setAddress(updated.getAddress().trim());
         order.setEmergencyName(updated.getEmergencyName() == null ? "" : updated.getEmergencyName().trim());
         order.setEmergencyPhone(updated.getEmergencyPhone() == null ? "" : updated.getEmergencyPhone().trim());
