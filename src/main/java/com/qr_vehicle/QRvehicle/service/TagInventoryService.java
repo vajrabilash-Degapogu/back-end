@@ -96,6 +96,8 @@ public class TagInventoryService {
         vehicle.setEmergencyPhone(order.getEmergencyPhone());
         vehicle.setVehicleNumber(order.getVehicleNumber());
         vehicle.setAddress(order.getAddress());
+        vehicle.setWhatsappUsername(order.getWhatsappUsername());
+        vehicle.setWhatsappUsernameLink(order.getWhatsappUsernameLink());
 
         // WhatsApp username and share link can be added by an admin later.
         // These fields are optional to support existing customer flows.
