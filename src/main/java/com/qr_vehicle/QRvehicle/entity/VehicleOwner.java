@@ -21,6 +21,9 @@ public class VehicleOwner {
     @NotBlank
     private String phoneNumber;
 
+    @Column(length = 254)
+    private String email;
+
     @Column(nullable = false)
     private String tagId;
 
