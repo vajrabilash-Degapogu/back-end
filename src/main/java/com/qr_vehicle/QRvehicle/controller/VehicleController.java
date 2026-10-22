@@ -88,8 +88,7 @@ public class VehicleController {
     dto.setEmergencyContactAvailable(
             v.getEmergencyPhone() != null && !v.getEmergencyPhone().isBlank());
     dto.setWhatsappUsername(v.getWhatsappUsername());
-    dto.setWhatsappAvailable(isValidWhatsAppContact(
-            v.getWhatsappUsername(), v.getWhatsappUsernameLink()));
+    dto.setWhatsappAvailable(isValidWhatsAppContact(v.getWhatsappUsername()));
 
     return ResponseEntity.ok()
             .header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
@@ -150,14 +149,13 @@ public ResponseEntity<Void> call(@PathVariable String code) {
             return ResponseEntity.notFound().build();
         }
 
-        String link = validateWhatsAppLink(owner.getWhatsappUsernameLink(), username);
-        if (link == null) {
-            return ResponseEntity.notFound().build();
-        }
+        // Official WhatsApp username contact links use wa.me/YourUsername.
+        // Username is validated above, so no phone number is needed or exposed.
+        URI link = URI.create("https://wa.me/" + username);
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.CACHE_CONTROL, "no-store")
-                .location(URI.create(link))
+                .location(link)
                 .build();
     }
 
@@ -191,15 +189,7 @@ public ResponseEntity<Void> call(@PathVariable String code) {
         v.setVehicleNumber(order.getVehicleNumber());
 
         v.setAddress(order.getAddress());
-        String username = normalizeUsername(order.getWhatsappUsername());
-        String usernameLink = validateWhatsAppLink(order.getWhatsappUsernameLink(), username);
-        if ((username == null) != (usernameLink == null)) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Order must contain both the WhatsApp username and sharing link, or neither.");
-        }
-        v.setWhatsappUsername(username);
-        v.setWhatsappUsernameLink(usernameLink);
+        v.setWhatsappUsername(normalizeUsername(order.getWhatsappUsername()));
 
     VehicleOwner saved = vehicleService.save(v);
 
@@ -259,15 +249,7 @@ public ResponseEntity<Void> callEmergency(@PathVariable String code) {
 
     v.setAddress(updated.getAddress());
     
-    String username = normalizeUsername(updated.getWhatsappUsername());
-    String usernameLink = validateWhatsAppLink(updated.getWhatsappUsernameLink(), username);
-    if ((username == null) != (usernameLink == null)) {
-        throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Enter both the WhatsApp username and official sharing link, or leave both blank.");
-    }
-    v.setWhatsappUsername(username);
-    v.setWhatsappUsernameLink(usernameLink);
+    v.setWhatsappUsername(normalizeUsername(updated.getWhatsappUsername()));
 
     return vehicleService.save(v);
     }
@@ -285,51 +267,8 @@ public ResponseEntity<Void> callEmergency(@PathVariable String code) {
         return value;
     }
 
-    private static String validateWhatsAppLink(String rawLink, String username) {
-        if (rawLink == null || rawLink.isBlank()) {
-            return null;
-        }
-        try {
-            if (username == null || username.isBlank()) {
-                throw new IllegalArgumentException();
-            }
-
-            URI uri = URI.create(rawLink.trim());
-            if (!"https".equalsIgnoreCase(uri.getScheme())
-                    || !"wa.me".equalsIgnoreCase(uri.getHost())
-                    || uri.getUserInfo() != null
-                    || uri.getPort() != -1
-                    || uri.getRawQuery() != null
-                    || uri.getFragment() != null) {
-                throw new IllegalArgumentException();
-            }
-
-            String linkPath = uri.getPath();
-            if (linkPath == null || !linkPath.startsWith("/")) {
-                throw new IllegalArgumentException();
-            }
-            String linkedUsername = linkPath.substring(1);
-            if (linkedUsername.isBlank()
-                    || linkedUsername.contains("/")
-                    || !linkedUsername.equalsIgnoreCase(username)) {
-                throw new IllegalArgumentException();
-            }
-            return uri.toASCIIString();
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Paste the official https://wa.me/YourUsername link copied from WhatsApp. It must match the username.");
-        }
+    private static boolean isValidWhatsAppContact(String username) {
+        return username != null
+                && WHATSAPP_USERNAME.matcher(username.trim().replaceFirst("^@", "")).matches();
     }
-
-    private static boolean isValidWhatsAppContact(String username, String link) {
-        try {
-            String normalizedUsername = normalizeUsername(username);
-            return normalizedUsername != null
-                    && validateWhatsAppLink(link, normalizedUsername) != null;
-        } catch (RuntimeException ex) {
-            return false;
-        }
-    }
-
 }
