@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.qr_vehicle.QRvehicle.dto.PublicVehicleDto;
 import com.qr_vehicle.QRvehicle.entity.Order;
@@ -152,6 +153,13 @@ public class VehicleController {
         owner.setAddress(updated.getAddress());
         owner.setWhatsappUsername(normalizeUsername(updated.getWhatsappUsername()));
         owner.setWhatsappUsernameLink(validateWhatsAppLink(updated.getWhatsappUsernameLink()));
+
+        if ((owner.getWhatsappUsername() == null) != (owner.getWhatsappUsernameLink() == null)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Enter both the WhatsApp username and official sharing link, or leave both blank.");
+        }
+
         return vehicleService.save(owner);
     }
 
@@ -185,9 +193,11 @@ public class VehicleController {
             String path = uri.getPath();
             if (path != null) {
                 String firstSegment = path.replaceFirst("^/", "").split("/", 2)[0];
-                boolean allDigits = !firstSegment.isEmpty()
-                        && firstSegment.chars().allMatch(Character::isDigit);
-                if (allDigits && firstSegment.length() >= 8 && firstSegment.length() <= 15) {
+                String candidate = firstSegment.startsWith("+")
+                        ? firstSegment.substring(1) : firstSegment;
+                boolean allDigits = !candidate.isEmpty()
+                        && candidate.chars().allMatch(Character::isDigit);
+                if (allDigits && candidate.length() >= 8 && candidate.length() <= 15) {
                     throw new IllegalArgumentException();
                 }
             }
