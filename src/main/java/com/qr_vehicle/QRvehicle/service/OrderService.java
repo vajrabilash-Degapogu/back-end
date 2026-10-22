@@ -125,8 +125,8 @@ public class OrderService {
         order.setName(updated.getName().trim());
         order.setPhone(updated.getPhone().trim());
         order.setAddress(updated.getAddress().trim());
-        order.setEmergencyName(updated.getEmergencyName().trim());
-        order.setEmergencyPhone(updated.getEmergencyPhone().trim());
+        order.setEmergencyName(updated.getEmergencyName() == null ? "" : updated.getEmergencyName().trim());
+        order.setEmergencyPhone(updated.getEmergencyPhone() == null ? "" : updated.getEmergencyPhone().trim());
         order.setVehicleNumber(vehicleNumber);
         order.setWhatsappUsername(normalizeWhatsAppUsername(updated.getWhatsappUsername()));
         order.setWhatsappUsernameLink(validateWhatsAppLink(updated.getWhatsappUsernameLink()));
