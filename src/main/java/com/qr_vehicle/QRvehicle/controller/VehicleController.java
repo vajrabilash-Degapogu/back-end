@@ -161,6 +161,7 @@ public ResponseEntity<Void> call(@PathVariable String code) {
                 .build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/vehicle/paginated")
     public Page<VehicleOwner> getVehiclesPaginated(
         @RequestParam int page,
