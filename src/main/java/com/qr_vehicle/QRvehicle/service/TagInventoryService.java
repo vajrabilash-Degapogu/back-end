@@ -114,10 +114,12 @@ public class TagInventoryService {
 
     vehicle.setOwnerName(order.getName());
     vehicle.setPhoneNumber(order.getPhone());
+    vehicle.setEmail(order.getEmail());
     vehicle.setEmergencyName(order.getEmergencyName());
     vehicle.setEmergencyPhone(order.getEmergencyPhone());
     vehicle.setVehicleNumber(order.getVehicleNumber());
     vehicle.setAddress(order.getAddress());
+    vehicle.setWhatsappUsername(order.getWhatsappUsername());
 
     // This is the QR UUID already printed on the sticker
     vehicle.setUniqueCode(tag.getUniqueCode());

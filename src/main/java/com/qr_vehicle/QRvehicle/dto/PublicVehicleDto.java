@@ -6,12 +6,12 @@ import lombok.Data;
 public class PublicVehicleDto {
 
     private String ownerName;
-
     private String vehicleNumber;
 
-    // Only used by frontend to decide whether
-    // to show the Emergency Contact button.
-    // Never displayed to the user.
-    private String emergencyPhone;
+    // Public flag and username only; phone numbers and share links remain server-side.
+    private boolean whatsappAvailable;
+    private String whatsappUsername;
 
+    // Only a presence flag is exposed for emergency contact.
+    private boolean emergencyContactAvailable;
 }

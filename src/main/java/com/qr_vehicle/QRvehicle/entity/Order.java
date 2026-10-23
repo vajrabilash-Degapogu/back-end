@@ -1,6 +1,7 @@
 package com.qr_vehicle.QRvehicle.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -25,6 +26,11 @@ public class Order {
         message = "Enter a valid 10-digit Indian mobile number"
     )
     private String phone;
+
+    @NotBlank(message = "Email address is required")
+    @Email(message = "Enter a valid email address")
+    @Column(length = 254)
+    private String email;
 
     private String emergencyName;
 
@@ -54,4 +60,8 @@ public class Order {
     private Boolean tagAssigned = false;
 
     private Long vehicleOwnerId;
+
+    // Optional WhatsApp username-based contact for the QR tag.
+    @Column(length = 35)
+    private String whatsappUsername;
 }

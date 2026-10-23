@@ -4,6 +4,7 @@ import com.qr_vehicle.QRvehicle.dto.LoginRequest;
 import com.qr_vehicle.QRvehicle.dto.LoginResponse;
 import com.qr_vehicle.QRvehicle.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +41,13 @@ public LoginResponse login(@RequestBody LoginRequest request) {
                             request.getPassword()
                     )
             );
+
+    // Customer accounts must use the customer login endpoint, never the admin console.
+    boolean isAdmin = authentication.getAuthorities().stream()
+            .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+    if (!isAdmin) {
+        throw new BadCredentialsException("Invalid admin username or password.");
+    }
 
     String token = jwtService.generateToken(authentication.getName());
 

@@ -2,6 +2,7 @@ package com.qr_vehicle.QRvehicle.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,12 +17,17 @@ import com.qr_vehicle.QRvehicle.repository.VehicleRepository;
 @Service
 public class OrderService {
 
+    private static final Pattern WHATSAPP_USERNAME =
+            Pattern.compile("^[A-Za-z0-9._]{3,35}$");
+
     private final OrderRepository repo;
     private final VehicleRepository vehicleRepo;
+    private final EmailOtpService emailOtpService;
 
-    public OrderService(OrderRepository repo, VehicleRepository vehicleRepo) {
+    public OrderService(OrderRepository repo, VehicleRepository vehicleRepo, EmailOtpService emailOtpService) {
         this.repo = repo;
         this.vehicleRepo = vehicleRepo;
+        this.emailOtpService = emailOtpService;
     }
 
     // =========================
@@ -34,6 +40,9 @@ public class OrderService {
                 .toUpperCase();
 
         order.setVehicleNumber(vehicleNumber);
+
+        order.setWhatsappUsername(normalizeWhatsAppUsername(order.getWhatsappUsername()));
+        order.setEmail(order.getEmail().trim().toLowerCase(java.util.Locale.ROOT));
 
         // Already registered as customer
         if (vehicleRepo.existsByVehicleNumber(vehicleNumber)) {
@@ -51,6 +60,8 @@ public class OrderService {
             );
         }
 
+        // OTP verification is enforced server-side; clients cannot bypass the UI.
+        emailOtpService.consumeVerifiedEmail(order.getEmail(), "ORDER");
         return repo.save(order);
     }
 
@@ -111,12 +122,33 @@ public class OrderService {
 
         order.setName(updated.getName().trim());
         order.setPhone(updated.getPhone().trim());
+        order.setEmail(updated.getEmail() == null ? "" : updated.getEmail().trim().toLowerCase(java.util.Locale.ROOT));
         order.setAddress(updated.getAddress().trim());
-        order.setEmergencyName(updated.getEmergencyName().trim());
-        order.setEmergencyPhone(updated.getEmergencyPhone().trim());
+        order.setEmergencyName(updated.getEmergencyName() == null ? "" : updated.getEmergencyName().trim());
+        order.setEmergencyPhone(updated.getEmergencyPhone() == null ? "" : updated.getEmergencyPhone().trim());
         order.setVehicleNumber(vehicleNumber);
+        order.setWhatsappUsername(normalizeWhatsAppUsername(updated.getWhatsappUsername()));
 
         return repo.save(order);
+    }
+
+
+    private static String normalizeWhatsAppUsername(String username) {
+        if (username == null || username.isBlank()) {
+            return null;
+        }
+
+        String value = username.trim();
+        if (value.startsWith("@")) {
+            value = value.substring(1);
+        }
+
+        if (!WHATSAPP_USERNAME.matcher(value).matches()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Enter a valid WhatsApp username (3-35 letters, numbers, dots or underscores).");
+        }
+        return value;
     }
 
     // =========================

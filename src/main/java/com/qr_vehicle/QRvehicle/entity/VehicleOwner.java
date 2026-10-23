@@ -21,6 +21,9 @@ public class VehicleOwner {
     @NotBlank
     private String phoneNumber;
 
+    @Column(length = 254)
+    private String email;
+
     @Column(nullable = false)
     private String tagId;
 
@@ -44,6 +47,9 @@ public class VehicleOwner {
 
     @Column(unique = true)
     private String uniqueCode;
+
+    @Column(length = 35)
+    private String whatsappUsername;
 
     public String getTagId() {
     return tagId;
