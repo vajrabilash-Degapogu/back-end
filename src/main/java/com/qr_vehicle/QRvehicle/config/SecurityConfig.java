@@ -41,7 +41,11 @@ public class SecurityConfig {
                     "/api/customer-auth/forgot-username/**",
                     "/api/customer-auth/forgot-password/**"
                 ).permitAll()
-                .requestMatchers("/api/customer-auth/me").hasRole("CUSTOMER")
+                .requestMatchers(
+                    "/api/customer-auth/me",
+                    "/api/customer-auth/my-tags",
+                    "/api/customer-auth/my-tags/**"
+                ).hasRole("CUSTOMER")
                 .requestMatchers("/api/email-otp/order/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/order").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/order/track/**").permitAll()
