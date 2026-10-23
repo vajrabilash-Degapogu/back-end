@@ -43,6 +43,8 @@ public class OrderService {
 
         order.setWhatsappUsername(normalizeWhatsAppUsername(order.getWhatsappUsername()));
         order.setEmail(order.getEmail().trim().toLowerCase(java.util.Locale.ROOT));
+        // Public checkout cannot set the internal reorder marker.
+        order.setReorderSourceTagId(null);
 
         // Already registered as customer
         if (vehicleRepo.existsByVehicleNumber(vehicleNumber)) {
@@ -61,6 +63,30 @@ public class OrderService {
         }
 
         // OTP verification is enforced server-side; clients cannot bypass the UI.
+        emailOtpService.consumeVerifiedEmail(order.getEmail(), "ORDER");
+        return repo.save(order);
+    }
+
+    /**
+     * Saves a replacement-tag order created by the authenticated customer dashboard.
+     * The controller builds this Order from the tag record owned by that customer.
+     */
+    public Order saveReorder(Order order) {
+        if (order.getName() == null || order.getPhone() == null || order.getAddress() == null
+                || order.getVehicleNumber() == null || order.getEmail() == null
+                || order.getReorderSourceTagId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Required reorder details are missing.");
+        }
+        order.setVehicleNumber(order.getVehicleNumber().trim().toUpperCase());
+        order.setEmail(order.getEmail().trim().toLowerCase(java.util.Locale.ROOT));
+        order.setWhatsappUsername(normalizeWhatsAppUsername(order.getWhatsappUsername()));
+        order.setStatus("PENDING");
+        order.setTagAssigned(false);
+        order.setTagId(null);
+        order.setVehicleOwnerId(null);
+        order.setVehicleCode(null);
+
+        // Each reorder requires a recent, single-use email OTP too.
         emailOtpService.consumeVerifiedEmail(order.getEmail(), "ORDER");
         return repo.save(order);
     }

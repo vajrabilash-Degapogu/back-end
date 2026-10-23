@@ -12,6 +12,8 @@ public interface TagInventoryRepository extends JpaRepository<TagInventory, Long
 
     Optional<TagInventory> findByTagId(String tagId);
 
+    Optional<TagInventory> findByVehicleId(Long vehicleId);
+
     Optional<TagInventory> findByUniqueCode(String uniqueCode);
 
     long countBySheetCodeAndAssignedFalse(String sheetCode);
