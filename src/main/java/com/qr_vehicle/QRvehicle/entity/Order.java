@@ -61,6 +61,10 @@ public class Order {
 
     private Long vehicleOwnerId;
 
+    // Set only by the authenticated customer reorder flow; points to the tag being reordered.
+    @Column(length = 8)
+    private String reorderSourceTagId;
+
     // Optional WhatsApp username-based contact for the QR tag.
     @Column(length = 35)
     private String whatsappUsername;
