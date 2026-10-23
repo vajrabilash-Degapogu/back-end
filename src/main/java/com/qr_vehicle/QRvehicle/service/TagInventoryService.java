@@ -106,8 +106,18 @@ public class TagInventoryService {
         throw new RuntimeException("Tag already assigned.");
     }
 
-    if (vehicleRepository.existsByVehicleNumber(order.getVehicleNumber())) {
-        throw new RuntimeException("Vehicle already exists.");
+    if (order.getReorderSourceTagId() == null) {
+        if (vehicleRepository.existsByVehicleNumber(order.getVehicleNumber())) {
+            throw new RuntimeException("Vehicle already exists.");
+        }
+    } else {
+        VehicleOwner sourceOwner = vehicleRepository.findByTagId(order.getReorderSourceTagId())
+                .orElseThrow(() -> new RuntimeException("Original tag for this reorder was not found."));
+        if (sourceOwner.getEmail() == null
+                || !sourceOwner.getEmail().equalsIgnoreCase(order.getEmail())
+                || !sourceOwner.getVehicleNumber().equalsIgnoreCase(order.getVehicleNumber())) {
+            throw new RuntimeException("Reorder details do not match the original tag owner.");
+        }
     }
 
     VehicleOwner vehicle = new VehicleOwner();
