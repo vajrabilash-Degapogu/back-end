@@ -1,6 +1,7 @@
 // package com.qr_vehicle.QRvehicle.repository;
 
-// import java.util.Optional;
+// import java.util.List;
+import java.util.Optional;
 
 // import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,6 +14,7 @@
 
 package com.qr_vehicle.QRvehicle.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,7 +32,9 @@ public interface VehicleRepository extends JpaRepository<VehicleOwner, Long> {
     // Check duplicate phone number (optional but recommended)
     Optional<VehicleOwner> findByPhoneNumber(String phoneNumber);
 
-    
+    Optional<VehicleOwner> findByTagId(String tagId);
+
+    List<VehicleOwner> findByEmailIgnoreCaseOrderByIdAsc(String email);
 
     // Exists checks (faster than fetching the whole entity)
     boolean existsByVehicleNumber(String vehicleNumber);

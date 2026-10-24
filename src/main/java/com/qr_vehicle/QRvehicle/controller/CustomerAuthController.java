@@ -1,8 +1,15 @@
 package com.qr_vehicle.QRvehicle.controller;
 
+import com.qr_vehicle.QRvehicle.dto.CustomerTagDto;
 import com.qr_vehicle.QRvehicle.entity.CustomerAccount;
+import com.qr_vehicle.QRvehicle.entity.Order;
+import com.qr_vehicle.QRvehicle.entity.TagInventory;
+import com.qr_vehicle.QRvehicle.entity.VehicleOwner;
 import com.qr_vehicle.QRvehicle.repository.AdminRepository;
 import com.qr_vehicle.QRvehicle.repository.CustomerAccountRepository;
+import com.qr_vehicle.QRvehicle.repository.TagInventoryRepository;
+import com.qr_vehicle.QRvehicle.repository.VehicleRepository;
+import com.qr_vehicle.QRvehicle.service.OrderService;
 import com.qr_vehicle.QRvehicle.security.JwtService;
 import com.qr_vehicle.QRvehicle.service.EmailOtpService;
 import jakarta.validation.Valid;
@@ -16,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,14 +37,22 @@ public class CustomerAuthController {
 
     private final CustomerAccountRepository accounts;
     private final AdminRepository admins;
+    private final VehicleRepository vehicles;
+    private final TagInventoryRepository tagInventory;
+    private final OrderService orderService;
     private final PasswordEncoder passwordEncoder;
     private final EmailOtpService emailOtpService;
     private final JwtService jwtService;
 
     public CustomerAuthController(CustomerAccountRepository accounts, AdminRepository admins,
-                                  PasswordEncoder passwordEncoder, EmailOtpService emailOtpService, JwtService jwtService) {
+                                  VehicleRepository vehicles, TagInventoryRepository tagInventory,
+                                  OrderService orderService, PasswordEncoder passwordEncoder,
+                                  EmailOtpService emailOtpService, JwtService jwtService) {
         this.accounts = accounts;
         this.admins = admins;
+        this.vehicles = vehicles;
+        this.tagInventory = tagInventory;
+        this.orderService = orderService;
         this.passwordEncoder = passwordEncoder;
         this.emailOtpService = emailOtpService;
         this.jwtService = jwtService;
@@ -141,6 +157,67 @@ public class CustomerAuthController {
         CustomerAccount account = accounts.findByUsernameIgnoreCase(authentication.getName())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer account not found."));
         return Map.of("username", account.getUsername(), "email", account.getEmail());
+    }
+
+    /**
+     * Returns only tags associated with the authenticated customer's verified account email.
+     * No email is accepted from the browser for this lookup.
+     */
+    @GetMapping("/my-tags")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public List<CustomerTagDto> myTags(Authentication authentication) {
+        CustomerAccount account = accounts.findByUsernameIgnoreCase(authentication.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer account not found."));
+
+        return vehicles.findByEmailIgnoreCaseOrderByIdAsc(account.getEmail()).stream()
+            .map(owner -> {
+                TagInventory inventory = tagInventory.findByVehicleId(owner.getId()).orElse(null);
+                return new CustomerTagDto(
+                    owner.getTagId(),
+                    owner.getVehicleNumber(),
+                    owner.getUniqueCode(),
+                    owner.getSheetCode(),
+                    owner.getSheetNumber(),
+                    inventory == null ? null : inventory.getStickerType()
+                );
+            })
+            .toList();
+    }
+
+    /**
+     * Creates a replacement-tag order from stored owner data, never from client-supplied
+     * phone/address/vehicle fields. A single-use email OTP is still required.
+     */
+    @PostMapping("/my-tags/{tagId}/reorder")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public Map<String, Object> reorderTag(@PathVariable String tagId, Authentication authentication) {
+        CustomerAccount account = accounts.findByUsernameIgnoreCase(authentication.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer account not found."));
+
+        VehicleOwner owner = vehicles.findByTagId(tagId)
+            .filter(candidate -> candidate.getEmail() != null
+                && candidate.getEmail().equalsIgnoreCase(account.getEmail()))
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tag not found for this customer."));
+
+        TagInventory inventory = tagInventory.findByTagId(owner.getTagId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tag inventory record not found."));
+
+        Order order = new Order();
+        order.setName(owner.getOwnerName());
+        order.setPhone(owner.getPhoneNumber());
+        order.setEmail(account.getEmail());
+        order.setAddress(owner.getAddress());
+        order.setVehicleNumber(owner.getVehicleNumber());
+        order.setStickerType(inventory.getStickerType());
+        order.setWhatsappUsername(owner.getWhatsappUsername());
+        order.setReorderSourceTagId(owner.getTagId());
+
+        Order saved = orderService.saveReorder(order);
+        return Map.of(
+            "orderId", saved.getId(),
+            "status", saved.getStatus(),
+            "message", "Your reorder request was submitted. OwnTag will process it shortly."
+        );
     }
 
     private Map<String, String> loginResponse(CustomerAccount account) {
